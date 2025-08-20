@@ -10,6 +10,8 @@ h1{
 h2 {
     color: red;
     font-size: 20px;
+    border: 10cm;
+    padding: 5%;
 }
 p {
     color: brown;
