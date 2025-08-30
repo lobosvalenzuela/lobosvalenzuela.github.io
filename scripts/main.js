@@ -25,12 +25,6 @@ function dataForm(ageForm){
 
     console.log(Object.fromEntries(formData));
     console.log(JSON.stringify(Object.fromEntries(formData), null, 2));
-
-    
-
-    
-
-
 }
 
 document.getElementById("ageForm").addEventListener("submit", function(e){
