@@ -27,6 +27,10 @@ function dataForm(ageForm){
     console.log(JSON.stringify(Object.fromEntries(formData), null, 2));
 }
 
+function addTask(task){
+    
+}
+//age form
 document.getElementById("ageForm").addEventListener("submit", function(e){
     console.log(e);
     e.preventDefault();
