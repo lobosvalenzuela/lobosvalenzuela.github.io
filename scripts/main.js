@@ -53,13 +53,84 @@ document.addEventListener('DOMContentLoaded', function(){
 
         renderTasks();
     }
+    // Toggle task completion
+    function toggleTaskCompletion(taskId){
+        // create a copy of the tasks array
+        tasks = tasks.map(task =>{
+            // if the task id matches the one we want to toggle
+            if (task.id === taskId){
+                // toggle the completed status
+                return {...task, completed: !task.completed};
+            }
+            // return the other tasks unchanged
+            return task;
+        })
+    }
 
+    function deleteTask(taskId){
+        tasks = tasks.filter(task => task.id !== taskId);
+        renderTasks();
+    }
 
+    // render tasks to dom
+    function renderTasks(){
+        // Clear the existing list
+        taskList.innerHTML = '';
+        if (tasks.length === 0){
+            taskList.innerHTML = '<div class="empty-message"><p>No tasks added yet.</p></div>';
+            return;
+        }
+        // Render each task
+        tasks.forEach(task =>{
+            const li = document.createElement('li');
 
+            if(task.completed === true){
+                li.classList.add('completed');
+            }
+            const textSpan = document.createElement('span');
+            textSpan.textContent = task.text;
+            textSpan.className = 'span-task';
+
+            // Create buttons div
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.className = 'buttons-div';
+            // Create completed button
+            const completedButton = document.createElement('button');
+            completedButton.innerHTML = task.completed ? 'Undo' : 'Complete';
+            completedButton.className = 'completed-button';
+            completedButton.addEventListener('click', ()=> toggleTaskCompletion(task.id));
+
+            const deleteButton =document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.className = 'delete-button';
+            deleteButton.addEventListener('click', () => deleteTask(task.id));
+
+            buttonsDiv.appendChild(completedButton);
+            buttonsDiv.appendChild(deleteButton);
+
+            li.appendChild(textSpan);
+            li.appendChild(buttonsDiv);
+            
+            console.log(li);
+            taskList.appendChild(li);
+        })
+    }
+    // add task with button
+    addButton.addEventListener('click',addTask);
+    // add task with enter key
+    newTask.addEventListener('keypress',function(e){
+        if (e.key === 'Enter'){
+            addTask();
+        }
+    });
+    renderTasks();
 });
-//age form
+
+//send age form
 document.getElementById("ageForm").addEventListener("submit", function(e){
     console.log(e);
     e.preventDefault();
     dataForm(e.target);
 });
+
+
