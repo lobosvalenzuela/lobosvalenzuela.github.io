@@ -1,0 +1,37 @@
+/* Bootstrap global */
+@import "bootstrap/dist/css/bootstrap.min.css";
+
+/* Navbar personalizada: fondo y contraste */
+.custom-navbar {
+  background-color: rgba(44, 62, 80, 0.95);
+}
+
+/* Asegura contraste y hover */
+.custom-navbar .nav-link {
+  color: #eaecef;
+}
+.custom-navbar .nav-link:hover,
+.custom-navbar .nav-link.active {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+/* Toggler visible en navbar oscura */
+.navbar-dark .navbar-toggler {
+  border-color: rgba(255,255,255,.25);
+}
+.navbar-dark .navbar-toggler-icon {
+  background-image: var(--bs-navbar-toggler-icon-bg); /* Bootstrap 5 usa esta var */
+}
+
+/* Marca */
+.brandNav {
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+/* Hero helper (opcional) */
+.hero-section .btn {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
