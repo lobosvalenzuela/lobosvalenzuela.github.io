@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
 type CartItem = {
   id: number;
@@ -220,7 +221,7 @@ export default function CarritoView() {
                   <h5 className="m-0">Precio total: {CLP(total)}</h5>
                   <div className="d-flex gap-2">
                     <button className="btn btn-outline-secondary" onClick={clearCart}>Vaciar</button>
-                    <button className="btn btn-dark" onClick={pagar}>Pagar</button>
+                    <Link href="/Pago" className="btn btn-dark">Pago</Link> 
                   </div>
                 </div>
               </div>
@@ -249,8 +250,7 @@ export default function CarritoView() {
                     <span>Total</span><strong>{CLP(total)}</strong>
                   </li>
                 </ul>
-
-                <button className="btn btn-dark w-100 mb-2" onClick={pagar}>Pagar</button>
+                <Link href="/Pago" className="btn btn-dark w-100 mb-2">Pago</Link> 
                 <button className="btn btn-outline-secondary w-100" onClick={clearCart}>Vaciar carrito</button>
 
                 <div className="mt-3 small text-muted">
