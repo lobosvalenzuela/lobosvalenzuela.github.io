@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css"; 
-import BootstrapClient from "./bootstrap-client";                 // aquí ya importas bootstrap.css (como acordamos)
+                // aquí ya importas bootstrap.css (como acordamos)
 import Navbar from "./navbar";
 import "./globals.css";
 
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Navbar />
         {/* Contenido de cada página */}
         {children}
-        <BootstrapClient />
+        
       </body>
     </html>
   );
