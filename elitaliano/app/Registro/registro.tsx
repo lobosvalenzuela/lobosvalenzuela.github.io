@@ -1,4 +1,3 @@
-// app/Registro/registro.tsx
 "use client"
 import React from "react";
 import { useState } from "react";
@@ -58,9 +57,12 @@ const Registro: React.FC = () => {
 
     if (validarForm()) {
       setExitoMsg("Registro existoso!");
+      
+      
       const users = JSON.parse(window.localStorage.getItem("users") || "[]");
       users.push(formData);
       window.localStorage.setItem("users", JSON.stringify(users));
+      // --- END OF CHANGES ---
 
       setFormData({
         nombreReg: "",

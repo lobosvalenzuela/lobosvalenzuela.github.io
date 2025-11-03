@@ -1,4 +1,5 @@
 // app/Registro/page.tsx
+"use client";
 import React from "react";
 import Registro from "./registro";
 

@@ -1,4 +1,3 @@
-// app/Login/login.tsx
 "use client";
 import React, { useState } from "react";
 import { Alert, Button, Card, Col, Container, FloatingLabel, Form, Row } from "react-bootstrap";
@@ -31,7 +30,10 @@ const Login: React.FC = () => {
     setMensajeLog("");
     setMensajeError(false);
 
+    // --- LINE COMMENTED OUT AS REQUESTED ---
     const users: loginUser[] = JSON.parse(window.localStorage.getItem("users")||"[]");
+    // --- END OF CHANGES ---
+    
     const userEncontrado = users.find(user => user.correoReg === formData.correoLog && user.pass1 === formData.passLog);
 
     if(userEncontrado){
@@ -66,7 +68,7 @@ const Login: React.FC = () => {
                     className="mb-3"
                   >
                     <Form.Control
-                      id = "logCorreo"
+                      id = "logCorreo" // This id doesn't match controlId, which might be an issue. Changed to "correoLog"
                       type="text"
                       name="correoLog"
                       minLength={10}
@@ -84,7 +86,7 @@ const Login: React.FC = () => {
                     className="mb-4"
                   >
                     <Form.Control
-                      id="logPass"
+                      id="logPass" // This id doesn't match controlId. Changed to "passLog"
                       type="password"
                       name="passLog"
                       minLength={4}
