@@ -1,17 +1,10 @@
 "use client";
 import React, { useState } from "react";
 import { Alert, Button, Card, Col, Container, FloatingLabel, Form, Row } from "react-bootstrap";
-
-interface loginUser {
-  nombreReg: string;
-  correoReg: string;
-  pass1: string;
-  pass2: string;
-}
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
-    correoLog: "",
-    passLog: ""
+    email: "",
+    password: ""
   });
 
   const [mensajeLog, setMensajeLog] = useState("");
@@ -25,29 +18,39 @@ const Login: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent)=>{
+  const handleSubmit = async (e: React.FormEvent)=>{
     e.preventDefault();
     setMensajeLog("");
     setMensajeError(false);
 
-    // --- LINE COMMENTED OUT AS REQUESTED ---
-    const users: loginUser[] = JSON.parse(window.localStorage.getItem("users")||"[]");
-    // --- END OF CHANGES ---
-    
-    const userEncontrado = users.find(user => user.correoReg === formData.correoLog && user.pass1 === formData.passLog);
-
-    if(userEncontrado){
-      setMensajeLog("Login exitoso, bienvenido "+ userEncontrado.nombreReg);
+    try {
+      const login = {
+        email: formData.email,
+        password: formData.password
+      }
+      const response = await fetch('http://localhost:8080/api/v1/usuarios/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(login),
+    });
+    if(response.ok){
+      const loginFound = await response.json();
+      setMensajeLog("Login exitoso");
       setMensajeError(false);
       setFormData({
-        correoLog: "",
-        passLog: ""
+        email: "",
+        password: ""
       });
     }else{
       setMensajeLog("Error, mail o password incorrectos");
       setMensajeError(true);
     }
-
+  }catch (error){
+      setMensajeLog("Error en el login");
+      setMensajeError(true);
+    }
   }
   return (
     <>
@@ -63,37 +66,35 @@ const Login: React.FC = () => {
                 </p>
                 <Form id="loginForm" onSubmit={handleSubmit} noValidate>
                   <FloatingLabel
-                    controlId="correoLog"
+                    controlId="email"
                     label="Correo:"
                     className="mb-3"
                   >
                     <Form.Control
-                      id = "logCorreo" // This id doesn't match controlId, which might be an issue. Changed to "correoLog"
                       type="text"
                       name="correoLog"
                       minLength={10}
                       maxLength={40}
                       placeholder="Email"
                       required
-                      value={formData.correoLog}
+                      value={formData.email}
                       onChange={handleChange}
                     />
                   </FloatingLabel>
 
                   <FloatingLabel
-                    controlId="passLog"
+                    controlId="password"
                     label="Contraseña:"
                     className="mb-4"
                   >
                     <Form.Control
-                      id="logPass" // This id doesn't match controlId. Changed to "passLog"
                       type="password"
                       name="passLog"
                       minLength={4}
                       maxLength={10}
                       placeholder="Password"
                       required
-                      value={formData.passLog}
+                      value={formData.password}
                       onChange={handleChange}
                     />
                   </FloatingLabel>
@@ -104,8 +105,6 @@ const Login: React.FC = () => {
                       {mensajeLog}
                     </Alert>
                   )}
-
-                  {/* Replaced <button> with <Button> */}
                   <Button id="logBoton" type="submit" variant="secondary" size="lg" className="w-100">
                     Login
                   </Button>
@@ -116,8 +115,6 @@ const Login: React.FC = () => {
         </Row>
       </Container>
     </section>
-
-    {/* Footer (This part was already using Bootstrap classes) */}
     <footer
       className="py-4 text-center text-white"
       style={{ backgroundColor: "rgba(44,62,80,0.95)" }}
