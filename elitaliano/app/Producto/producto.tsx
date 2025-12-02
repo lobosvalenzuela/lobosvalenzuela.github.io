@@ -1,27 +1,33 @@
 "use client";
 
-import React, { useMemo } from "react";
-import type { Producto } from "./products";
+import React, { useMemo, useState, useEffect } from "react";
 import { addToCart } from "../cartUtils"; // usa tu ruta actual
 
-interface Props {
-  products: Producto[];
+interface Producto {
+  idProducto: number,
+  nombre: string,
+  descripcion: string,
+  precio: number,
+  categoria: string,
+  imagen: string;
 }
 
-const CLP = (n: number) =>
-  new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  }).format(n);
-
-const Producto: React.FC<Props> = ({ products }) => {
+export default function Producto() {
+  const [productos, setProductos] = useState<Producto[]>([]);
+  useEffect(() => {
+    const fetchProductos = async () =>{
+      const response = await fetch("https://ratatinprogramin-production.up.railway.app/api/v1/productos", {cache: 'no-store'});
+      const data = await response.json();
+      setProductos(data);
+    }
+    fetchProductos();
+  }, []);
   // MISMA selección que en /Ofertas: tomamos la "mitad" por índice par
   const offerIds = useMemo(
-    () => new Set(products.filter((_, i) => i % 2 === 0).map((p) => p.id)),
-    [products]
+    () => new Set(productos.filter((_, i) => i % 2 === 0).map((p) => p.idProducto)),
+    [productos]
   );
-
+  
   return (
     <>
       <div className="container mt-4">
@@ -29,12 +35,12 @@ const Producto: React.FC<Props> = ({ products }) => {
           id="listaProductos"
           className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4"
         >
-          {products.map((p, idx) => {
-            const onOffer = offerIds.has(p.id);
+          {productos.map((p) => {
+            const onOffer = offerIds.has(p.idProducto);
             const precioDescuento = onOffer ? Math.round(p.precio * 0.5) : p.precio;
 
             return (
-              <div className="col" key={p.id}>
+              <div className="col" key={p.idProducto}>
                 <div id="producto" className="card h-100 shadow-sm position-relative">
                   {onOffer && (
                     <span
@@ -60,12 +66,12 @@ const Producto: React.FC<Props> = ({ products }) => {
                     {onOffer ? (
                       <div className="mb-3">
                         <div className="text-muted small">
-                          <s>{CLP(p.precio)}</s>
+                          <s>{p.precio}</s>
                         </div>
-                        <div className="fw-bold">{CLP(precioDescuento)}</div>
+                        <div className="fw-bold">{precioDescuento}</div>
                       </div>
                     ) : (
-                      <p className="card-text fw-bold mb-3">{CLP(p.precio)}</p>
+                      <p className="card-text fw-bold mb-3">{p.precio}</p>
                     )}
 
                     <button
@@ -73,16 +79,15 @@ const Producto: React.FC<Props> = ({ products }) => {
                       className="btn btn-dark w-100 mt-auto"
                       onClick={() =>
                         addToCart({
-                          id: p.id,
+                          id: p.idProducto,
                           nombre: p.nombre,
-                          // 👇 al carrito entra el precio correcto (descuento si aplica)
                           precio: precioDescuento,
                           imagen: p.imagen.startsWith("/") ? p.imagen : `/${p.imagen}`,
                           descripcion: p.descripcion,
                           qty: 1,
                         })
                       }
-                      data-id={p.id}
+                      data-id={p.idProducto}
                       data-name={p.nombre}
                       data-price={precioDescuento}
                       data-image={p.imagen}
@@ -107,4 +112,4 @@ const Producto: React.FC<Props> = ({ products }) => {
   );
 };
 
-export default Producto;
+

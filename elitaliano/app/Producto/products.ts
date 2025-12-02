@@ -6,7 +6,6 @@ export interface Producto {
   imagen: string;       // ruta relativa bajo /public (sin dominio)
   descripcion: string;
 }
-
 export const products: Producto[] = [
   { id: 1,  nombre: "Pizza Margarita",            precio: 7990,  imagen: "/IMG/pizza.jpg",                 descripcion: "pizza con salsa de tomate, mozzarella fresca y albahaca." },
   { id: 2,  nombre: "Pizza Pepperoni",            precio: 8990,  imagen: "/IMG/peperoni.jpg",              descripcion: "pizza con salsa de tomate,pepperoni y mozzarella." },

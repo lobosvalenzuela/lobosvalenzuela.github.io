@@ -65,7 +65,7 @@ const Registro: React.FC = () => {
           password: formData.password,
           admin: formData.admin
         };
-        const response = await fetch('http://localhost:8080/api/v1/usuarios/crear', 
+        const response = await fetch('https://ratatinprogramin-production.up.railway.app/api/v1/usuarios/crear', 
           {method: 'POST',
           headers: {
             'Content-Type': 'application/json',
