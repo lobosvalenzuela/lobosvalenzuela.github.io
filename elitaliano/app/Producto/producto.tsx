@@ -52,7 +52,7 @@ export default function Producto() {
                   )}
 
                   <img
-                    src={p.imagen.startsWith("/") ? p.imagen : `/${p.imagen}`}
+                    src={p.imagen.startsWith("https") ? p.imagen : `/${p.imagen}`}
                     className="card-img-top"
                     alt={p.nombre}
                     style={{ objectFit: "cover" }}
@@ -82,7 +82,7 @@ export default function Producto() {
                           id: p.idProducto,
                           nombre: p.nombre,
                           precio: precioDescuento,
-                          imagen: p.imagen.startsWith("/") ? p.imagen : `/${p.imagen}`,
+                          imagen: p.imagen.startsWith("https") ? p.imagen : `/${p.imagen}`,
                           descripcion: p.descripcion,
                           qty: 1,
                         })

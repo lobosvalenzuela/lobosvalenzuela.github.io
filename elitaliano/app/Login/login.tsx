@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Alert, Button, Card, Col, Container, FloatingLabel, Form, Row } from "react-bootstrap";
+
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
     email: "",
@@ -37,6 +38,7 @@ const Login: React.FC = () => {
     });
     if(response.ok){
       const loginFound = await response.json();
+      localStorage.setItem("loginUsuario", JSON.stringify(loginFound));
       setMensajeLog("Login exitoso");
       setMensajeError(false);
       setFormData({

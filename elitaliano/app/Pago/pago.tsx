@@ -4,102 +4,53 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { loadCart, saveCart, CartItem } from "../cartUtils";
 
-const CLP = (n: number) =>
-  new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  }).format(n);
-
 // Persistencia del formulario
 const CHECKOUT_KEY = "elitaliano_checkout";
 
 // Dominios permitidos (mismo criterio que Registro)
 const DOMINIOS_PERMITIDOS = ["@duoc.cl", "@gmail.com", "@profesor.duoc.cl"];
 
-type CheckoutForm = {
-  nombre: string;
-  correo: string;
-  telefono?: string;
-  region?: string;
-  comuna?: string;
-  direccion?: string;
-  metodoPago: "tarjeta" | "transferencia" | "efectivo";
-  notas?: string;
-};
-
-const defaultForm: CheckoutForm = {
-  nombre: "",
-  correo: "",
-  telefono: "",
-  region: "",
-  comuna: "",
-  direccion: "",
-  metodoPago: "tarjeta",
-  notas: "",
-};
-
-type Errors = {
-  nombre?: string;
-  correo?: string;
-  telefono?: string;
-  region?: string;
-  comuna?: string;
-};
-
 export default function PagoView() {
   const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [form, setForm] = useState<CheckoutForm>(defaultForm);
-  const [errors, setErrors] = useState<Errors>({});
   const [loading, setLoading] = useState(true);
 
-  // cargar carrito + form guardado
+  const [form, setForm] = useState({
+    nombre: "",
+    correo: "",
+    telefono: "",
+    direccion: ""
+  })
+
   useEffect(() => {
-    setCart(loadCart());
-    try {
-      const raw = localStorage.getItem(CHECKOUT_KEY);
-      setForm(raw ? { ...defaultForm, ...(JSON.parse(raw) as CheckoutForm) } : defaultForm);
-    } catch {
-      setForm(defaultForm);
-    } finally {
-      setLoading(false);
+    const userLogeado = localStorage.getItem("loginUsuario");
+    if(!userLogeado){
+      alert("Inicia sesion para continuar con el pago");
+      router.push("/Login");
+      return;
+    }
+    const carro = loadCart();
+    if(carro){
+      setCart(carro);
     }
   }, []);
-
-  // persistir form
-  useEffect(() => {
-    if (!loading) localStorage.setItem(CHECKOUT_KEY, JSON.stringify(form));
-  }, [form, loading]);
 
   // totales
   const itemsCount = useMemo(() => cart.reduce((a, i) => a + i.qty, 0), [cart]);
   const subtotal = useMemo(() => cart.reduce((a, i) => a + i.precio * i.qty, 0), [cart]);
-  const envio = 0;
-  const impuestos = 0;
-  const total = subtotal + envio + impuestos;
+  const envio = 1500;
+  const total = subtotal + envio;
 
-  // compatibilidad con precioTotal (como en carrito)
-  useEffect(() => {
-    const totalDiv = document.getElementById("precioTotal");
-    if (totalDiv) {
-      const h5 = totalDiv.querySelector("h5");
-      if (h5) h5.textContent = `Precio total: ${CLP(total)}`;
-    }
-  }, [total]);
-
-  function onChange<K extends keyof CheckoutForm>(key: K, value: CheckoutForm[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>{
+    setForm({
+      ...form,
+      [e.target.id]: e.target.value
+    });
   }
 
-  // --- Validaciones estilo "Registro" ---
+  /*
   function validarField(f: CheckoutForm): Errors {
     const e: Errors = {};
-
-    // Nombre: mínimo 3
-    if (!f.nombre || f.nombre.trim().length < 3) {
-      e.nombre = "Ingresa un nombre válido (mínimo 3 caracteres).";
-    }
 
     // Correo: formato + dominio permitido
     if (!f.correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.correo)) {
@@ -111,63 +62,44 @@ export default function PagoView() {
         e.correo = `El correo debe terminar en: ${DOMINIOS_PERMITIDOS.join(", ")}`;
       }
     }
-
-    // Teléfono: opcional, pero si existe debe tener 9 dígitos
-    if (f.telefono && f.telefono.trim() !== "") {
-      const digits = f.telefono.replace(/\D/g, "");
-      if (!/^\d{9}$/.test(digits)) {
-        e.telefono = "El teléfono debe tener 9 dígitos (solo números).";
-      }
-    }
-
-    // Región / Comuna: requeridas (en Registro son selects con valor no nulo)
-    if (!f.region || f.region.trim().length === 0) {
-      e.region = "Selecciona/ingresa una región.";
-    }
-    if (!f.comuna || f.comuna.trim().length === 0) {
-      e.comuna = "Selecciona/ingresa una comuna.";
-    }
-
     return e;
   }
+  */
+  const pagar = async (e: React.FormEvent) =>{
+    e.preventDefault();
 
-  // Revalidar en cada cambio
-  useEffect(() => {
-    setErrors(validarField(form));
-  }, [form]);
-
-  const isValid = useMemo(() => {
-    const e = validarField(form);
-    const noErrors = Object.keys(e).length === 0;
-    return noErrors && cart.length > 0; // carrito no vacío
-  }, [form, cart]);
-
-  function confirmarPago() {
-    // última barrera
-    const e = validarField(form);
-    if (Object.keys(e).length > 0) {
-      setErrors(e);
-      alert("Por favor corrige los errores antes de continuar.");
-      return;
-    }
-    if (!cart.length) {
+    if(cart.length === 0){
       alert("Tu carrito está vacío.");
       return;
     }
 
-    alert(
-      `¡Gracias, ${form.nombre}!\nHemos recibido tu pedido por ${itemsCount} ítem(s) por un total de ${CLP(
-        total
-      )}.\nMétodo de pago: ${form.metodoPago.toUpperCase()}.\n(Flujo demo)`
-    );
-
-    // limpiar carrito y notificar
-    saveCart([]);
-    setCart([]);
-    localStorage.removeItem(CHECKOUT_KEY);
-    router.push("/");
-  }
-
+    try{
+      const user = JSON.parse(localStorage.getItem("loginUsuario")||"{}");
+      const numTransaccion = Date.now();
+      const pagoPromises = cart.map(it => {
+        const pagoData = {
+          usuario: {idUsuario: user.idUsuario},
+          producto: {idProducto: it.id},
+          cant: it.qty,
+          fecha: new Date().toISOString(),
+          numTransaccion: numTransaccion
+        };
+        return fetch("https://ratatinprogramin-production.up.railway.app/api/v1/pagos/crear", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(pagoData),
+        });
+      });
+      await Promise.all(pagoPromises);
+      alert("Pago realizado con exito. Transaccion Nro "+ numTransaccion);
+      setCart([]);
+    }catch(error){
+      console.log("Error en el pago:", error);
+      alert("Error al procesar el pago. Intenta nuevamente.");
+    }
+  };
   return (
     <>
       {/* Formulario estilo Registro */}
@@ -178,38 +110,35 @@ export default function PagoView() {
             <p className="section-subtitle">Ingresa tus datos para finalizar la compra</p>
 
             <div className="registration-form">
-              <form id="Pago" onSubmit={(e) => e.preventDefault()}>
+              <form id="Pago" onSubmit={pagar}>
                 <div className="form-row">
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label htmlFor="pagoNombre" className="form-label">Nombre completo</label>
+                      <label className="form-label">Nombre completo</label>
                       <input
-                        id="pagoNombre"
+                        id="nombre"
                         type="text"
-                        className={`form-control form-control-lg ${errors.nombre ? "is-invalid" : ""}`}
+                        className={`form-control form-control-lg`}
                         placeholder="Nombre completo"
                         maxLength={100}
                         minLength={3}
                         required
                         value={form.nombre}
-                        onChange={(e) => onChange("nombre", e.target.value)}
+                        onChange={handleChange}
                       />
-                      <p id="mensajeNombre" className="invalid-feedback">{errors.nombre}</p>
                     </div>
-
                     <div className="col-md-6">
-                      <label htmlFor="pagoCorreo" className="form-label">Correo</label>
+                      <label className="form-label">Correo</label>
                       <input
-                        id="pagoCorreo"
+                        id="correo"
                         type="email"
-                        className={`form-control form-control-lg ${errors.correo ? "is-invalid" : ""}`}
+                        className={`form-control form-control-lg`}
                         placeholder="Correo"
-                        maxLength={100}
+                        maxLength={50}
                         required
                         value={form.correo}
-                        onChange={(e) => onChange("correo", e.target.value)}
+                        onChange={handleChange}
                       />
-                      <p id="mensajeCorreo" className="invalid-feedback">{errors.correo}</p>
                     </div>
                   </div>
                 </div>
@@ -217,132 +146,32 @@ export default function PagoView() {
                 <div className="form-row">
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label htmlFor="pagoTelefono" className="form-label">Teléfono (opcional)</label>
+                      <label className="form-label">Teléfono (opcional)</label>
                       <input
-                        id="pagoTelefono"
+                        id="telefono"
                         type="tel"
-                        className={`form-control form-control-lg ${errors.telefono ? "is-invalid" : ""}`}
+                        className={`form-control form-control-lg`}
                         placeholder="Teléfono (9 dígitos)"
-                        maxLength={12}
+                        minLength={9}
+                        maxLength={9}
                         value={form.telefono || ""}
-                        onChange={(e) => onChange("telefono", e.target.value)}
+                        onChange={handleChange}
                       />
-                      <p id="mensajeTelefono" className="invalid-feedback">{errors.telefono}</p>
                     </div>
 
                     <div className="col-md-6">
-                      <label htmlFor="pagoDireccion" className="form-label">Dirección (opcional)</label>
+                      <label className="form-label">Dirección (opcional)</label>
                       <input
-                        id="pagoDireccion"
+                        id="direccion"
                         type="text"
                         className="form-control form-control-lg"
                         placeholder="Dirección"
                         maxLength={120}
                         value={form.direccion || ""}
-                        onChange={(e) => onChange("direccion", e.target.value)}
+                        onChange={handleChange}
                       />
                     </div>
                   </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label htmlFor="pagoRegion" className="form-label">Región</label>
-                      <input
-                        id="pagoRegion"
-                        type="text"
-                        className={`form-control form-control-lg ${errors.region ? "is-invalid" : ""}`}
-                        placeholder="Región"
-                        required
-                        value={form.region || ""}
-                        onChange={(e) => onChange("region", e.target.value)}
-                      />
-                      <p id="mensajeRegion" className="invalid-feedback">{errors.region}</p>
-                    </div>
-
-                    <div className="col-md-6">
-                      <label htmlFor="pagoComuna" className="form-label">Comuna</label>
-                      <input
-                        id="pagoComuna"
-                        type="text"
-                        className={`form-control form-control-lg ${errors.comuna ? "is-invalid" : ""}`}
-                        placeholder="Comuna"
-                        required
-                        value={form.comuna || ""}
-                        onChange={(e) => onChange("comuna", e.target.value)}
-                      />
-                      <p id="mensajeComuna" className="invalid-feedback">{errors.comuna}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label d-block">Método de pago</label>
-                      <div className="btn-group" role="group" aria-label="metodo pago">
-                        <input
-                          type="radio"
-                          className="btn-check"
-                          name="metodoPago"
-                          id="pagoTarjeta"
-                          checked={form.metodoPago === "tarjeta"}
-                          onChange={() => onChange("metodoPago", "tarjeta")}
-                        />
-                        <label className="btn btn-outline-dark" htmlFor="pagoTarjeta">Tarjeta</label>
-
-                        <input
-                          type="radio"
-                          className="btn-check"
-                          name="metodoPago"
-                          id="pagoTransferencia"
-                          checked={form.metodoPago === "transferencia"}
-                          onChange={() => onChange("metodoPago", "transferencia")}
-                        />
-                        <label className="btn btn-outline-dark" htmlFor="pagoTransferencia">Transferencia</label>
-
-                        <input
-                          type="radio"
-                          className="btn-check"
-                          name="metodoPago"
-                          id="pagoEfectivo"
-                          checked={form.metodoPago === "efectivo"}
-                          onChange={() => onChange("metodoPago", "efectivo")}
-                        />
-                        <label className="btn btn-outline-dark" htmlFor="pagoEfectivo">Efectivo</label>
-                      </div>
-                    </div>
-
-                    <div className="col-md-6">
-                      <label htmlFor="pagoNotas" className="form-label">Notas (opcional)</label>
-                      <textarea
-                        id="pagoNotas"
-                        className="form-control"
-                        placeholder="Alguna indicación para tu pedido..."
-                        rows={3}
-                        maxLength={300}
-                        value={form.notas || ""}
-                        onChange={(e) => onChange("notas", e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="d-flex gap-2 mt-3">
-                  <button type="button" className="btn btn-outline-secondary" onClick={() => router.push("/Carrito")}>
-                    Editar carrito
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-dark"
-                    onClick={confirmarPago}
-                    disabled={!isValid}
-                    aria-disabled={!isValid}
-                    title={!isValid ? "Completa correctamente los datos para continuar" : "Confirmar pago"}
-                  >
-                    Confirmar pago
-                  </button>
                 </div>
               </form>
             </div>
@@ -381,7 +210,7 @@ export default function PagoView() {
                           <td>
                             <div className="d-flex align-items-center gap-3">
                               <img
-                                src={it.imagen.startsWith("/") ? it.imagen : `/${it.imagen}`}
+                                src={it.imagen.startsWith("https") ? it.imagen : `/${it.imagen}`}
                                 alt={it.nombre}
                                 width={64}
                                 height={64}
@@ -394,8 +223,8 @@ export default function PagoView() {
                             </div>
                           </td>
                           <td className="text-center">{it.qty}</td>
-                          <td className="text-end">{CLP(it.precio)}</td>
-                          <td className="text-end">{CLP(it.precio * it.qty)}</td>
+                          <td className="text-end">{it.precio}</td>
+                          <td className="text-end">{it.precio * it.qty}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -407,7 +236,7 @@ export default function PagoView() {
                   className="totalPrice p-3 mt-3 rounded d-flex justify-content-between align-items-center"
                   style={{ backgroundColor: "rgba(0,0,0,0.03)" }}
                 >
-                  <h5 className="m-0">Precio total: {CLP(total)}</h5>
+                  <h5 className="m-0">Precio total: {total}</h5>
                 </div>
               </div>
             </div>
@@ -425,27 +254,22 @@ export default function PagoView() {
                   </li>
                   <li className="list-group-item d-flex justify-content-between">
                     <span>Subtotal</span>
-                    <strong>{CLP(subtotal)}</strong>
+                    <strong>{subtotal}</strong>
                   </li>
                   <li className="list-group-item d-flex justify-content-between">
                     <span>Envío</span>
-                    <strong>{CLP(envio)}</strong>
-                  </li>
-                  <li className="list-group-item d-flex justify-content-between">
-                    <span>Impuestos</span>
-                    <strong>{CLP(impuestos)}</strong>
+                    <strong>{envio}</strong>
                   </li>
                   <li className="list-group-item d-flex justify-content-between">
                     <span>Total</span>
-                    <strong>{CLP(total)}</strong>
+                    <strong>{total}</strong>
                   </li>
                 </ul>
 
                 <button
                   className="btn btn-dark w-100 mb-2"
-                  onClick={confirmarPago}
-                  disabled={!isValid}
-                  aria-disabled={!isValid}
+                  type="submit"
+                  form="Pago"
                 >
                   Confirmar pago
                 </button>
@@ -456,7 +280,7 @@ export default function PagoView() {
                 <div className="mt-3 small text-muted">
                   <p className="mb-1">• Los precios están expresados en CLP.</p>
                   <p className="mb-1">• Envío: retiro en tienda (sin costo) o calcular en checkout.</p>
-                  <p className="mb-0">• Métodos de pago: tarjeta, transferencia, efectivo (demo).</p>
+                  <p className="mb-0">• Métodos de pago: tarjeta y efectivo.</p>
                 </div>
               </div>
             </div>

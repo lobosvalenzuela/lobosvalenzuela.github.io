@@ -29,12 +29,6 @@ function saveCart(items: CartItem[]) {
   window.dispatchEvent(new Event("cart:update"));
 }
 
-const CLP = (n: number) =>
-  new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  }).format(n);
 
 export default function CarritoView() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -50,8 +44,7 @@ export default function CarritoView() {
     [cart]
   );
   const envio = 0;
-  const impuestos = 0;
-  const total = subtotal + envio + impuestos;
+  const total = subtotal + envio;
 
   // ---- FUNCIONES DE MODIFICACIÓN (guardan de inmediato) ----
   function increase(id: number) {
@@ -88,7 +81,7 @@ export default function CarritoView() {
   }
 
   function pagar() {
-    alert(`Pagar ${CLP(total)} por ${itemsCount} ítem(s). (Demo)`);
+    alert(`Pagar ${total} por ${itemsCount} ítem(s). (Demo)`);
     clearCart();
   }
 
@@ -97,7 +90,7 @@ export default function CarritoView() {
     const totalDiv = document.getElementById("precioTotal");
     if (totalDiv) {
       const h5 = totalDiv.querySelector("h5");
-      if (h5) h5.textContent = `Precio total: ${CLP(total)}`;
+      if (h5) h5.textContent = `Precio total: ${total}`;
     }
   }, [total]);
 
@@ -124,7 +117,7 @@ export default function CarritoView() {
               <div className="col-6 col-sm-4 col-md-3 col-lg-2" key={p.id}>
                 <div className="card h-100 shadow-sm">
                   <img
-                    src={p.imagen.startsWith("/") ? p.imagen : `/${p.imagen}`}
+                    src={p.imagen.startsWith("https") ? p.imagen : `/${p.imagen}`}
                     alt={p.nombre}
                     className="card-img-top"
                     style={{ height: 120, objectFit: "cover" }}
@@ -172,7 +165,7 @@ export default function CarritoView() {
                             <div className="d-flex align-items-center gap-3">
                               <img
                                 src={
-                                  it.imagen.startsWith("/")
+                                  it.imagen.startsWith("https")
                                     ? it.imagen
                                     : `/${it.imagen}`
                                 }
@@ -198,8 +191,8 @@ export default function CarritoView() {
                             </div>
                           </td>
 
-                          <td className="text-end">{CLP(it.precio)}</td>
-                          <td className="text-end">{CLP(it.precio * it.qty)}</td>
+                          <td className="text-end">{it.precio}</td>
+                          <td className="text-end">{it.precio * it.qty}</td>
 
                           <td className="text-end">
                             <button className="btn btn-outline-danger btn-sm" onClick={() => removeItem(it.id)}>
@@ -218,11 +211,7 @@ export default function CarritoView() {
                   className="totalPrice p-3 mt-3 rounded d-flex justify-content-between align-items-center"
                   style={{ backgroundColor: "rgba(0,0,0,0.03)" }}
                 >
-                  <h5 className="m-0">Precio total: {CLP(total)}</h5>
-                  <div className="d-flex gap-2">
-                    <button className="btn btn-outline-secondary" onClick={clearCart}>Vaciar</button>
-                    <Link href="/Pago" className="btn btn-dark">Pago</Link> 
-                  </div>
+                  <h5 className="m-0">Precio total: {total}</h5>
                 </div>
               </div>
             </div>
@@ -238,16 +227,13 @@ export default function CarritoView() {
                     <span>Ítems</span><strong>{itemsCount}</strong>
                   </li>
                   <li className="list-group-item d-flex justify-content-between">
-                    <span>Subtotal</span><strong>{CLP(subtotal)}</strong>
+                    <span>Subtotal</span><strong>{subtotal}</strong>
                   </li>
                   <li className="list-group-item d-flex justify-content-between">
-                    <span>Envío</span><strong>{CLP(envio)}</strong>
+                    <span>Envío</span><strong>{envio}</strong>
                   </li>
                   <li className="list-group-item d-flex justify-content-between">
-                    <span>Impuestos</span><strong>{CLP(impuestos)}</strong>
-                  </li>
-                  <li className="list-group-item d-flex justify-content-between">
-                    <span>Total</span><strong>{CLP(total)}</strong>
+                    <span>Total</span><strong>{total}</strong>
                   </li>
                 </ul>
                 <Link href="/Pago" className="btn btn-dark w-100 mb-2">Pago</Link> 
@@ -256,7 +242,7 @@ export default function CarritoView() {
                 <div className="mt-3 small text-muted">
                   <p className="mb-1">• Los precios están expresados en CLP.</p>
                   <p className="mb-1">• Envío: retiro en tienda (sin costo) o calcular en checkout.</p>
-                  <p className="mb-0">• Métodos de pago: efectivo, tarjeta, transferencia (demo).</p>
+                  <p className="mb-0">• Métodos de pago: efectivo y tarjeta</p>
                 </div>
               </div>
             </div>

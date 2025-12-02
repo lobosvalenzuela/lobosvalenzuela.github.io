@@ -4,13 +4,6 @@ import React, { useMemo } from "react";
 import { products } from "../Producto/products";
 import { addToCart } from "../cartUtils";
 
-const CLP = (n: number) =>
-  new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  }).format(n);
-
 /**
  * Seleccionamos la mitad del catálogo (por índice par) y aplicamos 50% dto.
  * Si quieres otro criterio, cambia el filter/map.
@@ -61,9 +54,9 @@ export default function Ofertas() {
                   {/* Precios: original tachado + rebajado */}
                   <div className="mb-3">
                     <div className="text-muted small">
-                      <s>{CLP(p.precioOriginal)}</s>
+                      <s>{p.precioOriginal}</s>
                     </div>
-                    <div className="fw-bold">{CLP(p.precioDescuento)}</div>
+                    <div className="fw-bold">{p.precioDescuento}</div>
                   </div>
 
                   <button
