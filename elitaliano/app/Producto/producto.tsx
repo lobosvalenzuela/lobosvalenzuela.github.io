@@ -11,7 +11,6 @@ interface Producto {
   categoria: string,
   imagen: string;
 }
-
 export default function Producto() {
   const [productos, setProductos] = useState<Producto[]>([]);
   useEffect(() => {
@@ -22,7 +21,7 @@ export default function Producto() {
     }
     fetchProductos();
   }, []);
-  // MISMA selección que en /Ofertas: tomamos la "mitad" por índice par
+
   const offerIds = useMemo(
     () => new Set(productos.filter((_, i) => i % 2 === 0).map((p) => p.idProducto)),
     [productos]

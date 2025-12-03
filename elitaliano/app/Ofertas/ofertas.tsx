@@ -1,14 +1,27 @@
 "use client";
 
-import React, { useMemo } from "react";
-import { products } from "../Producto/products";
+import React, { useMemo, useEffect } from "react";
 import { addToCart } from "../cartUtils";
 
-/**
- * Seleccionamos la mitad del catálogo (por índice par) y aplicamos 50% dto.
- * Si quieres otro criterio, cambia el filter/map.
- */
+interface Producto {
+  idProducto: number,
+  nombre: string,
+  descripcion: string,
+  precio: number,
+  categoria: string,
+  imagen: string;
+}
+
 export default function Ofertas() {
+  const [products, setProductos] = React.useState<Producto[]>([]);
+  useEffect(() => {
+      const fetchProductos = async () =>{
+        const response = await fetch("https://ratatinprogramin-production.up.railway.app/api/v1/productos", {cache: 'no-store'});
+        const data = await response.json();
+        setProductos(data);
+      }
+      fetchProductos();
+    }, []);
   const ofertas = useMemo(() => {
     const mitad = products.filter((_, i) => i % 2 === 0); // mitad del listado
     return mitad.map((p) => ({
@@ -31,7 +44,7 @@ export default function Ofertas() {
           className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4"
         >
           {ofertas.map((p) => (
-            <div className="col" key={p.id}>
+            <div className="col" key={p.idProducto}>
               <div id="producto" className="card h-100 shadow-sm position-relative">
                 <span
                   className="badge bg-danger position-absolute"
@@ -41,7 +54,7 @@ export default function Ofertas() {
                 </span>
 
                 <img
-                  src={p.imagen.startsWith("/") ? p.imagen : `/${p.imagen}`}
+                  src={p.imagen.startsWith("https") ? p.imagen : `/${p.imagen}`}
                   className="card-img-top"
                   alt={p.nombre}
                   style={{ objectFit: "cover" }}
@@ -64,11 +77,10 @@ export default function Ofertas() {
                     className="btn btn-dark w-100 mt-auto"
                     onClick={() =>
                       addToCart({
-                        id: p.id,
+                        id: p.idProducto,
                         nombre: p.nombre,
-                        // ¡Al carrito entra el precio DESCONTADO!
                         precio: p.precioDescuento,
-                        imagen: p.imagen.startsWith("/") ? p.imagen : `/${p.imagen}`,
+                        imagen: p.imagen.startsWith("https") ? p.imagen : `/${p.imagen}`,
                         descripcion: p.descripcion,
                         qty: 1,
                       })
